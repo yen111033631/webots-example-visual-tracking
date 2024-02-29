@@ -6,15 +6,21 @@ from controller import Robot
 import cv2
 import numpy as np
 
-def get_image_with_cam(webots_cam):
-    img = webots_cam.getImageArray()
-    img = np.asarray(img, dtype=np.uint8)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    return img
 
+def get_image_with_camera(cam_node):
+    # Get the image from the camera
+    img = cam_node.getImage()
 
+    # Decode the image data into a NumPy array
+    img_np = np.frombuffer(img, dtype=np.uint8)
 
+    # Reshape the NumPy array to get the image in the correct shape (height, width, channels)
+    img_np = img_np.reshape((cam_node.getHeight(), cam_node.getWidth(), 4))
 
+    # Extract the RGB channels (assuming 4 channels, where the fourth channel is often an alpha channel)
+    img_rgb = img_np[:, :, :3]
+    
+    return img_rgb
 
 
 # create the Robot instance.
@@ -42,20 +48,9 @@ i = 0
 # Main loop:
 # - perform simulation steps until Webots is stopping the controller
 while robot.step(timestep) != -1:
-    # img = get_image_with_cam(CamLeft)
-    # img = CamLeft.getImage()
 
     # Get the image from the camera
-    img = CamLeft.getImage()
-
-    # Decode the image data into a NumPy array
-    img_np = np.frombuffer(img, dtype=np.uint8)
-
-    # Reshape the NumPy array to get the image in the correct shape (height, width, channels)
-    img_np = img_np.reshape((CamLeft.getHeight(), CamLeft.getWidth(), 4))
-
-    # Extract the RGB channels (assuming 4 channels, where the fourth channel is often an alpha channel)
-    img_rgb = img_np[:, :, :3]
+    img_rgb = get_image_with_camera(CamLeft)
 
     # Now you can use OpenCV to perform various image processing tasks
     # For example, displaying the image
@@ -64,14 +59,14 @@ while robot.step(timestep) != -1:
 
 
 
-    if i == 1:
-        print(type(img))
-        print(len(img))
-        print(len(img) / w / h)
+    # if i == 1:
+    #     print(type(img_rgb))
+    #     print(len(img_rgb))
+    #     print(len(img_rgb) / w / h)
 
 
-        print(img[:10])
-        int_values = [int(byte) for byte in img]
+    #     print(img_rgb[:10])
+    #     int_values = [int(byte) for byte in img_rgb]
         # print(int_values)
 
 
@@ -79,18 +74,3 @@ while robot.step(timestep) != -1:
     # cv2.imshow("img", img)
     # cv2.waitKey(1)
     i += 1
-
-
-
-
-
-    # pass
-    # Read the sensors:
-    # Enter here functions to read sensor data, like:
-     # val = ds.getValue()
-
-    # Process sensor data here.
-
-    # Enter here functions to send actuator commands, like:
-     # motor.setPosition(10.0)
-# Enter here exit cleanup code.
